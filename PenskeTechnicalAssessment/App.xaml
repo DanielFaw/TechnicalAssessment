@@ -1,0 +1,30 @@
+﻿<Application x:Class="PenskeTechnicalAssessment.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:PenskeTechnicalAssessment"
+             xmlns:views="clr-namespace:PenskeTechnicalAssessment.Views"
+             xmlns:vms="clr-namespace:PenskeTechnicalAssessment.ViewModels"
+             xmlns:models="clr-namespace:PenskeTechnicalAssessment.Models"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/DataTemplates.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+            <!--If a data type of DisplayVM is used, display it using the given view-->
+            <DataTemplate DataType="{x:Type vms:DisplayVM}">
+                <views:NASCARView/>
+            </DataTemplate>
+            <FontFamily x:Key="Abadi">Abadi MT</FontFamily>
+            <Style TargetType="{x:Type TextBlock}">
+                <Setter Property="FontFamily" Value="{StaticResource Hauser}"/>
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="PenskeTechnicalAssessment.Views.NASCARView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:PenskeTechnicalAssessment.Views"
+      mc:Ignorable="d" 
+      xmlns:vm="clr-namespace:PenskeTechnicalAssessment.ViewModels"
+      xmlns:models="clr-namespace:PenskeTechnicalAssessment.Models">
+    <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding RaceData}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type models:SeriesList}">
+                    <StackPanel  Orientation="Vertical" Grid.Row="{Binding SeriesIndex}">
+                        <TextBlock Text="{Binding SeriesName}"/>
+                        <!--Display each item in the series-->
+                        <ItemsControl ItemsSource="{Binding QueryResult}" ItemTemplate="{StaticResource DisplayDefault}"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</UserControl>
