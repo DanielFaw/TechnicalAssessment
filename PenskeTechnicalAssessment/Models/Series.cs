@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -58,12 +59,38 @@ namespace PenskeTechnicalAssessment.Models
         public DateTime? poleWinnerLaptime { get; set; }
 
 
+        //Non-JSON data
+        public bool HasHappened => winnerDriverId.HasValue;
+        public int Year { get; set; }
+        public LapDataRequest RequestData => new LapDataRequest(Year, seriesId, raceId, raceName, trackName);
+
     }
 
     public class SeriesList
     {
         public string SeriesName {  get; set; }
-        public int SeriesIndex { get; set; }
+        public int SeriesNumber { get; set; }
         public List<Series>? QueryResult { get; set; }
+    }
+
+    public class LapDataRequest
+    {
+        public int Year { get; set; }
+        public int Series { get; set; }
+        public int RaceID { get; set; }
+        public string RaceName { get; set; }
+        public string TrackName {  set; get; }
+
+        public LapDataRequest(int year, int series, int raceId, string raceName, string trackName)
+        {
+            Year = year;
+            Series = series;
+            RaceID = raceId;
+            RaceName = raceName;
+            TrackName = trackName;
+        }
+
+
+
     }
 }

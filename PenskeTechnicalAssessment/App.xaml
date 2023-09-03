@@ -19,11 +19,12 @@
             <FontFamily x:Key="Abadi">Abadi MT</FontFamily>
             <Style TargetType="{x:Type TextBlock}">
                 <Setter Property="FontFamily" Value="{StaticResource Hauser}"/>
-                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="FontSize" Value="24"/>
                 <Setter Property="Foreground" Value="White"/>
                 <Setter Property="TextWrapping" Value="Wrap"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Typography.Capitals" Value="AllSmallCaps"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

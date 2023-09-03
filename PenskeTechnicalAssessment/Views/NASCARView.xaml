@@ -6,18 +6,167 @@
       xmlns:local="clr-namespace:PenskeTechnicalAssessment.Views"
       mc:Ignorable="d" 
       xmlns:vm="clr-namespace:PenskeTechnicalAssessment.ViewModels"
-      xmlns:models="clr-namespace:PenskeTechnicalAssessment.Models">
-    <ScrollViewer>
-        <ItemsControl ItemsSource="{Binding RaceData}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type models:SeriesList}">
-                    <StackPanel  Orientation="Vertical" Grid.Row="{Binding SeriesIndex}">
-                        <TextBlock Text="{Binding SeriesName}"/>
-                        <!--Display each item in the series-->
-                        <ItemsControl ItemsSource="{Binding QueryResult}" ItemTemplate="{StaticResource DisplayDefault}"/>
+      xmlns:models="clr-namespace:PenskeTechnicalAssessment.Models"
+             xmlns:conv="clr-namespace:PenskeTechnicalAssessment.Converters">
+    <UserControl.Resources>
+        <conv:BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:BooleanToVisibilityConverter x:Key="BoolToVisInv" TrueValue="Hidden" FalseValue="Visible"/>
+        <conv:BooleanAndToVisibilityConverter x:Key="BoolAndToVis"/>
+        <ControlTemplate x:Key="HeaderButtonTemplate" TargetType="Button">
+            <Border x:Name="ButtonBorder"
+                Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="15">
+                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" Direction="-45" RenderingBias="Quality" ShadowDepth="2"/>
+                </Border.Effect>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="ButtonBorder" Property="Background" Value="SkyBlue"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="White"/>
+                    <Setter TargetName="ButtonBorder" Property="BorderThickness" Value="2"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0"  Visibility="{Binding DisplayContent, Converter={StaticResource BoolToVis}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Grid.Column="0">
+                <TextBlock Text="Viewing year: "/>
+                <ComboBox Background="Gray" VerticalAlignment="Center" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="250">
+                    <ComboBoxItem Content="2023" Background="LightGray" IsSelected="True" Selected="YearSelected"/>
+                    <ComboBoxItem Content="2022" Background="LightGray" Selected="YearSelected"/>
+                    <ComboBoxItem Content="2021" Background="LightGray" Selected="YearSelected"/>
+                    <ComboBoxItem Content="2020" Background="LightGray" Selected="YearSelected"/>
+                    <ComboBoxItem Content="2019" Background="LightGray" Selected="YearSelected"/>
+                    <ComboBoxItem Content="2018" Background="LightGray" Selected="YearSelected"/>
+                    <ComboBoxItem Content="2017" Background="LightGray" Selected="YearSelected"/>
+                    <ComboBoxItem Content="2016" Background="LightGray" Selected="YearSelected"/>
+                    <ComboBoxItem Content="1966" Background="LightGray" Selected="YearSelected"/>
+                </ComboBox>
+            </StackPanel>
+            
+            <Grid Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{Binding CurrentSeries.SeriesName}" FontSize="40" VerticalAlignment="Center"/>
+            </Grid>
+            <Grid Grid.Column="2">
+                <UniformGrid Columns="3">
+                    <Button HorizontalAlignment="Stretch" Command="{Binding SelectSeriesCommand}" 
+                        CommandParameter="1" Template="{StaticResource HeaderButtonTemplate}" BorderBrush="Black" Background="Gold" BorderThickness="1">
+                        <TextBlock Text="Cup" Foreground="Black" FontWeight="DemiBold"/>
+                    </Button>
+
+                    <Button HorizontalAlignment="Stretch" Command="{Binding SelectSeriesCommand}" 
+                            CommandParameter="2" Template="{StaticResource HeaderButtonTemplate}" BorderBrush="Black" Background="Crimson" BorderThickness="1">
+                        <TextBlock Text="XFinity" Foreground="Black" FontWeight="DemiBold"/>
+                    </Button>
+                    <Button HorizontalAlignment="Stretch" Command="{Binding SelectSeriesCommand}" 
+         CommandParameter="3" Template="{StaticResource HeaderButtonTemplate}" BorderBrush="Black" Background="DodgerBlue" BorderThickness="1">
+                        <TextBlock Text="Trucks" Foreground="Black" FontWeight="DemiBold"/>
+                    </Button>
+                </UniformGrid>
+            </Grid>
+        </Grid>
+
+
+        <ScrollViewer Grid.Row="1" x:Name="Root"  Visibility="{Binding DisplayContent, Converter={StaticResource BoolToVis}}">
+        <Grid>
+                <TextBlock Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}" Text="Failed to load data." FontSize="32"/>
+                <Grid Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Orientation="Vertical">
+                        <Image
+    Source="/Images/spinner.png"
+    Width="100"
+    Height="100"
+    RenderTransformOrigin="0.5, 0.5">
+                            <Image.RenderTransform>
+                                <RotateTransform />
+                            </Image.RenderTransform>
+                            <Image.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                        Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
+                        To="360" Duration="0:0:1" RepeatBehavior="Forever" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Image.Triggers>
+                        </Image>
+                        <TextBlock  Text="Loading..." FontSize="32"/>
                     </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+
+                </Grid>
+                <StackPanel Orientation="Vertical">
+                    <ItemsControl ItemsSource="{Binding CurrentSeries.QueryResult}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type models:Series}">
+                                            <Border BorderBrush="Black" BorderThickness="0, 1" Height="95" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+
+                                                <Grid Background="#454545" Height="95" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="2*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                        <StackPanel Orientation="Vertical" Grid.Column="0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding raceDate, StringFormat='{}{0:MMMM dd}'}"/>
+                                            <TextBlock Text="{Binding raceDate, StringFormat='{}{0:hh:mm tt}'}" FontSize="20"/>
+                                        </StackPanel>
+                                                    
+                                                    <TextBlock Grid.Column="1" Text="{Binding raceName}" TextWrapping="Wrap"  HorizontalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding trackName}" TextWrapping="Wrap"  HorizontalAlignment="Center"/>
+                                                    <StackPanel Grid.Column="3" Orientation="Vertical"  HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center">
+                                                            <TextBlock Text="{Binding scheduledDistance}"/>
+                                                            <TextBlock Text=" Miles"/>
+                                                        </StackPanel>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                            <TextBlock Text="In "/>
+                                                            <TextBlock Text="{Binding scheduledLaps}"/>
+                                                            <TextBlock Text=" Laps"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+
+                                                    <!--Direct reference is needed since DataTemplate items aren't technically in the visual tree-->
+                                                    <Button Grid.Column="4" Margin="10" Visibility="{Binding HasHappened, Converter={StaticResource BoolToVis}}" 
+                                                            Command="{Binding Path=DataContext.GetLapDataCommand, ElementName=Root}" 
+                                                            CommandParameter="{Binding RequestData}">
+                                                        <TextBlock Text="View Lap Times"/>
+                                                    </Button>
+                                        <TextBlock Grid.Column="4" Margin="10" Visibility="{Binding HasHappened, Converter={StaticResource BoolToVisInv}}" Text="Lap times not available"/>
+
+                                    </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                </StackPanel>
+
+        </Grid>
     </ScrollViewer>
+    <Grid Grid.RowSpan="2">
+            <local:LaptimeView DataContext="{Binding LapDisplay}"/>
+        </Grid>
+        
+        
+    </Grid>
 </UserControl>

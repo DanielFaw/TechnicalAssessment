@@ -1,0 +1,90 @@
+﻿<UserControl x:Class="PenskeTechnicalAssessment.Views.LaptimeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:PenskeTechnicalAssessment.Views"
+             mc:Ignorable="d" 
+             xmlns:vm="clr-namespace:PenskeTechnicalAssessment.ViewModels"
+             xmlns:models="clr-namespace:PenskeTechnicalAssessment.Models"
+             xmlns:conv="clr-namespace:PenskeTechnicalAssessment.Converters">
+    <UserControl.Resources>
+        <conv:BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:BooleanToVisibilityConverter x:Key="BoolToVisInv" TrueValue="Hidden" FalseValue="Visible"/>
+    </UserControl.Resources>
+    <Grid Visibility="{Binding DisplayContent, Converter={StaticResource BoolToVis}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <UniformGrid Columns="3" HorizontalAlignment="Stretch">
+                
+                <TextBlock Text="{Binding DataRequest.RaceName}" Grid.Column="0"/>
+                <TextBlock Text="{Binding DataRequest.TrackName}" Grid.Column="1"/>
+                <Button Command="{Binding BackToMainViewCommand}" Grid.Column="2" Margin="5">
+                    <TextBlock Text="Back to series view"/>
+                </Button>
+
+            </UniformGrid>
+            
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid>
+                <TextBlock Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}" Text="Failed to load data." FontSize="32"/>
+                <Grid Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Orientation="Vertical">
+
+                        <Image
+Source="/Images/spinner.png"
+Width="100"
+Height="100"
+RenderTransformOrigin="0.5, 0.5">
+                            <Image.RenderTransform>
+                                <RotateTransform />
+                            </Image.RenderTransform>
+                            <Image.Triggers>
+                                <EventTrigger RoutedEvent="Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                    Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
+                    To="360" Duration="0:0:1" RepeatBehavior="Forever" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Image.Triggers>
+                        </Image>
+                        <TextBlock  Text="Loading..." FontSize="32"/>
+                    </StackPanel>
+
+                </Grid>
+                <!--Main content-->
+                <ScrollViewer x:Name="LaptimeSource">
+                    <ItemsControl ItemsSource="{Binding RaceData}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:RaceInfo}">
+                                <StackPanel Orientation="Vertical" Background="#454545">
+                                    <Border BorderThickness="0,2, 0, 0" BorderBrush="Black">
+                                        <StackPanel Orientation="Horizontal" Margin="5">
+                                            <TextBlock Text="{Binding FullName}"/>
+                                            <TextBlock Text=" #"/>
+                                            <TextBlock Text="{Binding Number}"/>
+                                            <TextBlock Text=" Started at position "/>
+                                            <TextBlock Text="{Binding StartingPosition}"/>
+                                            <TextBlock Text=" With an average lap time of "/>
+                                            <TextBlock Text="{Binding AverageLapTime, StringFormat=f}"/>
+                                            <TextBlock Text="s and ended in position "/>
+                                            <TextBlock Text="{Binding RunningPos}"/>
+                                        </StackPanel>
+                                    </Border>
+                                    
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

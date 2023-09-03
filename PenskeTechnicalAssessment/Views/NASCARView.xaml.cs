@@ -1,6 +1,9 @@
-﻿using System;
+﻿using PenskeTechnicalAssessment.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,6 +26,14 @@ namespace PenskeTechnicalAssessment.Views
         public NASCARView()
         {
             InitializeComponent();
+        }
+
+        private void YearSelected(object sender, RoutedEventArgs e)
+        {
+            //Convert the item's content to an int and tell the data context to refresh
+            var item = sender as ComboBoxItem;
+            var year = int.Parse(item.Content.ToString());
+            (DataContext as DisplayVM)?.RefreshData(year);
         }
     }
 }

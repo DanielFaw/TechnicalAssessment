@@ -1,4 +1,5 @@
 ﻿using PenskeTechnicalAssessment.Models;
+using PenskeTechnicalAssessment.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -7,112 +8,229 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Navigation;
 
 namespace PenskeTechnicalAssessment.ViewModels
 {
-    public class DisplayVM : DependencyObject
+    public class DisplayVM : INotifyPropertyChanged
     {
-        private const string endpoint = "https://cf.nascar.com/cacher/2023/race_list_basic.json";
+        //Dear NASCAR, why does one endpoint use snake_case and the other uses dashes?
+        private string raceList = "https://cf.nascar.com/cacher/YEAR/race_list_basic.json";
+
+        private int lastSelectedSeries = 1;
 
 
-        public static readonly DependencyProperty RaceDataProperty = DependencyProperty.Register(nameof(RaceData), typeof(ObservableCollection<SeriesList>), typeof(DisplayVM), new PropertyMetadata(default(ObservableCollection<SeriesList>)));
-        public ObservableCollection<SeriesList> RaceData
+        public LapDisplayVM LapDisplay { get; set; }
+
+
+        private ObservableCollection<SeriesList> _seriesData;
+        public ObservableCollection<SeriesList> SeriesData
         {
-            get => (ObservableCollection<SeriesList>)GetValue(RaceDataProperty);
-            set => SetValue(RaceDataProperty, value);
+            get => _seriesData;
+            set{
+                if (value == _seriesData) return;
+                _seriesData = value;
+                OnPropertyChanged();
+            }
         }
 
-        public static readonly DependencyProperty IsLoadingProperty = DependencyProperty.Register(nameof(IsLoading), typeof(bool), typeof(DisplayVM), new PropertyMetadata(default(bool)));
+        private SeriesList _currentSeries;
+        public SeriesList CurrentSeries
+        {
+            get => _currentSeries;
+            set
+            {
+                if (value == _currentSeries) return;
+                _currentSeries = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        private bool _isLoading;
         public bool IsLoading
         {
-            get => (bool)GetValue(IsLoadingProperty);
-            set => SetValue(IsLoadingProperty, value);
+            get => _isLoading;
+            set
+            {
+                if (value == _isLoading) return;
+                _isLoading = value;
+                OnPropertyChanged();
+            }
         }
 
-        public static readonly DependencyProperty SeriesAmountProperty = DependencyProperty.Register(nameof(SeriesAmount), typeof(int), typeof(DisplayVM), new PropertyMetadata(default(int)));
-        public int SeriesAmount
+
+
+        private bool _hasError;
+        public bool HasError
         {
-            get => (int)GetValue(SeriesAmountProperty);
-            set => SetValue(SeriesAmountProperty, value);
+            get => _hasError;
+            set
+            {
+                if (value == _hasError) return;
+                _hasError = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private bool _displayContent = false;
+        public bool DisplayContent
+        {
+            get => _displayContent;
+            set
+            {
+                if (value == _displayContent) return;
+                _displayContent = value;
+                OnPropertyChanged();
+            }
         }
 
 
+        public ICommand GetLapDataCommand => new RelayCommand(
+            param => !IsLoading,
+            (lapDataRequestParam) =>
+            {
+                DisplayContent = false;
+                LapDataRequest request = lapDataRequestParam as LapDataRequest;
+                LapDisplay.RefreshLapData(request);
+            });
 
+        public ICommand SelectSeriesCommand => new RelayCommand(
+            param => !IsLoading,
+            selectedSeriesParam =>
+            {
+                if (SeriesData.Count == 0) return;
+                lastSelectedSeries = int.Parse(selectedSeriesParam as string);
+                CurrentSeries = SeriesData.Single(series => series.SeriesNumber == lastSelectedSeries);
+            }
+            );
 
         public DisplayVM() 
         {
-            GetData();
-
+            RefreshData(2023);
+            LapDisplay = new LapDisplayVM(this);
 
         }
 
-        public async void GetData()
+        public async void RefreshData(int year)
         {
-            await GetRaceInfo();
+            DisplayContent = true;
+            IsLoading = true;
+            HasError = false;
+            SeriesData?.Clear();
+            CurrentSeries = null;
+            var raceData = await Task.Run(() => GetYearInfo(year));
+            if (raceData.Count == 0)
+            {
+                HasError = true;
+                IsLoading = false;
+                return;
+            }
+            var data = await Task.Run(() => FormatYearData(raceData, year));
+            if(data.Count == 0)
+            {
+                HasError = true;
+                IsLoading = false;
+                return;
+            }
+            SeriesData = data;
+            CurrentSeries = SeriesData.Single(series => series.SeriesNumber == lastSelectedSeries);
+            IsLoading = false;
+
+
         }
 
-        public async Task<List<int>> GetRaceInfo()
+ 
+
+
+        public Dictionary<string, List<Series>> GetYearInfo(int year)
         {
             HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(endpoint);
+            client.BaseAddress = new Uri(raceList.Replace("YEAR", year.ToString()));
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
- 
             try
             {
-                HttpResponseMessage response = await client.GetAsync("");
+                HttpResponseMessage response = client.GetAsync("").Result;
                 response.EnsureSuccessStatusCode();
-                string data = await response.Content.ReadAsStringAsync();
-
+                string data = response.Content.ReadAsStringAsync().Result;
                 //Convert the snake_case json to camelCase so the deserializer knows how to use the data
                 //This is not a problem with Newtonsoft
                 data = data.Split(new[] { "_" }, StringSplitOptions.RemoveEmptyEntries).Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1, s.Length - 1)).Aggregate(string.Empty, (s1, s2) => s1 + s2);
 
-                var returnResults = JsonSerializer.Deserialize<Dictionary<string, List<Series>>>(data);
+                var returnData = JsonSerializer.Deserialize<Dictionary<string, List<Series>>>(data);
 
-
-                var interm = new ObservableCollection<SeriesList>();
-                foreach (KeyValuePair<string, List<Series>> kvp in returnResults)
+                if (returnData is null)
                 {
-                    int seriesIndex = (int.Parse(kvp.Key[kvp.Key.Length - 1].ToString())) - 1;
-                    interm.Add(new SeriesList() { 
-                        QueryResult = kvp.Value, 
-                        SeriesName = kvp.Key,
-                        SeriesIndex = seriesIndex
-                        
-                    });
+                    throw new JsonException();
                 }
+                return returnData;
 
-                SeriesAmount = returnResults.Keys.Count;
-                RaceData = interm;
 
             }
-            finally
+            catch (Exception ex)
             {
-
+                return new Dictionary<string, List<Series>>();
             }
-            //catch(HttpRequestException hre)
-            //{
-            //    await Console.Out.WriteLineAsync("HTTP Request Exception!");
-            //}
-            //catch(Exception ex)
-            //{
-            //    await Console.Out.WriteLineAsync("Other exception!");
-            //}
 
 
-            return new List<int> { 0 };
         }
 
 
+        public ObservableCollection<SeriesList> FormatYearData(Dictionary<string, List<Series>> returnResults, int year)
+        {
+            var interm = new ObservableCollection<SeriesList>();
+            try
+            {
+                foreach (KeyValuePair<string, List<Series>> kvp in returnResults)
+                {
+                    foreach (Series series in kvp.Value)
+                    {
+                        series.Year = year;
+                    }
+                    int seriesNumber = int.Parse(kvp.Key[kvp.Key.Length - 1].ToString());
+                    if (seriesNumber < 1 || seriesNumber > 3)
+                    {
+                        throw new Exception();
+                    }
+                    string seriesName = kvp.Key switch
+                    {
+                        "series1" => "Cup Series",
+                        "series2" => "Xfinity Series",
+                        "series3" => "Truck Series",
+                        _ => throw new Exception()
+                    };
+                    interm.Add(new SeriesList()
+                    {
+                        QueryResult = kvp.Value,
+                        SeriesName = seriesName,
+                        SeriesNumber = seriesNumber
+                    });
+                }
 
-      
+                return interm;
+            }
+            catch(Exception ex)
+            {
+                return new ObservableCollection<SeriesList>();
+            }
+        }
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
     }
 }
