@@ -1,4 +1,5 @@
-﻿using PenskeTechnicalAssessment.Models;
+﻿using PenskeTechnicalAssessment.JSONObjects;
+using PenskeTechnicalAssessment.Models;
 using PenskeTechnicalAssessment.Tools;
 using System;
 using System.Collections.Generic;
@@ -151,7 +152,7 @@ namespace PenskeTechnicalAssessment.ViewModels
  
 
 
-        public Dictionary<string, List<Series>> GetYearInfo(int year)
+        public Dictionary<string, List<JSONSeries>> GetYearInfo(int year)
         {
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(raceList.Replace("YEAR", year.ToString()));
@@ -166,7 +167,7 @@ namespace PenskeTechnicalAssessment.ViewModels
                 //This is not a problem with Newtonsoft
                 data = data.Split(new[] { "_" }, StringSplitOptions.RemoveEmptyEntries).Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1, s.Length - 1)).Aggregate(string.Empty, (s1, s2) => s1 + s2);
 
-                var returnData = JsonSerializer.Deserialize<Dictionary<string, List<Series>>>(data);
+                var returnData = JsonSerializer.Deserialize<Dictionary<string, List<JSONSeries>>>(data);
 
                 if (returnData is null)
                 {
@@ -178,23 +179,26 @@ namespace PenskeTechnicalAssessment.ViewModels
             }
             catch (Exception ex)
             {
-                return new Dictionary<string, List<Series>>();
+                return new Dictionary<string, List<JSONSeries>>();
             }
 
 
         }
 
 
-        public ObservableCollection<SeriesList> FormatYearData(Dictionary<string, List<Series>> returnResults, int year)
+        public ObservableCollection<SeriesList> FormatYearData(Dictionary<string, List<JSONSeries>> returnResults, int year)
         {
             var interm = new ObservableCollection<SeriesList>();
             try
             {
-                foreach (KeyValuePair<string, List<Series>> kvp in returnResults)
+                foreach (KeyValuePair<string, List<JSONSeries>> kvp in returnResults)
                 {
-                    foreach (Series series in kvp.Value)
+                    List<Series> convertedData = new List<Series>();
+                    foreach (JSONSeries series in kvp.Value)
                     {
-                        series.Year = year;
+                        Series newSeries = new Series(series);
+                        convertedData.Add(newSeries);
+                        newSeries.Year = year;
                     }
                     int seriesNumber = int.Parse(kvp.Key[kvp.Key.Length - 1].ToString());
                     if (seriesNumber < 1 || seriesNumber > 3)
@@ -210,7 +214,7 @@ namespace PenskeTechnicalAssessment.ViewModels
                     };
                     interm.Add(new SeriesList()
                     {
-                        QueryResult = kvp.Value,
+                        QueryResult = convertedData,
                         SeriesName = seriesName,
                         SeriesNumber = seriesNumber
                     });

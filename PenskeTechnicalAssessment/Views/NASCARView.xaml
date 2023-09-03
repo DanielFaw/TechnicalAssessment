@@ -128,20 +128,20 @@
                                                     </Grid.ColumnDefinitions>
 
                                         <StackPanel Orientation="Vertical" Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding raceDate, StringFormat='{}{0:MMMM dd}'}"/>
-                                            <TextBlock Text="{Binding raceDate, StringFormat='{}{0:hh:mm tt}'}" FontSize="20"/>
+                                            <TextBlock Text="{Binding RaceDate, StringFormat='{}{0:MMMM dd}'}"/>
+                                            <TextBlock Text="{Binding RaceDate, StringFormat='{}{0:hh:mm tt}'}" FontSize="20"/>
                                         </StackPanel>
                                                     
-                                                    <TextBlock Grid.Column="1" Text="{Binding raceName}" TextWrapping="Wrap"  HorizontalAlignment="Center"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding trackName}" TextWrapping="Wrap"  HorizontalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding RaceName}" TextWrapping="Wrap"  HorizontalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding TrackName}" TextWrapping="Wrap"  HorizontalAlignment="Center"/>
                                                     <StackPanel Grid.Column="3" Orientation="Vertical"  HorizontalAlignment="Center" VerticalAlignment="Center">
                                                         <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center">
-                                                            <TextBlock Text="{Binding scheduledDistance}"/>
+                                                            <TextBlock Text="{Binding ScheduledDistance}"/>
                                                             <TextBlock Text=" Miles"/>
                                                         </StackPanel>
                                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                             <TextBlock Text="In "/>
-                                                            <TextBlock Text="{Binding scheduledLaps}"/>
+                                                            <TextBlock Text="{Binding ScheduledLaps}"/>
                                                             <TextBlock Text=" Laps"/>
                                                         </StackPanel>
                                                     </StackPanel>

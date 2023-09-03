@@ -6,11 +6,7 @@ using System.Threading.Tasks;
 
 namespace PenskeTechnicalAssessment.Models
 {
-    public class JSONLapTimes
-    {
-        public List<RaceInfo> laps { get; set; }
-        public List<RaceFlags> flags { get; set; }
-    }
+   
     public class RaceInfo
     {
         //The JSON displays the number as a string. If this was a perminant project, I would have proper JSON objects that get transformed into the C# object I needed
