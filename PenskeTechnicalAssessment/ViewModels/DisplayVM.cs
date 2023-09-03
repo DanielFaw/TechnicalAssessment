@@ -108,7 +108,7 @@ namespace PenskeTechnicalAssessment.ViewModels
             param => !IsLoading,
             selectedSeriesParam =>
             {
-                if (SeriesData.Count == 0) return;
+                if ( SeriesData is null || SeriesData.Count == 0) return;
                 lastSelectedSeries = int.Parse(selectedSeriesParam as string);
                 CurrentSeries = SeriesData.Single(series => series.SeriesNumber == lastSelectedSeries);
             }
